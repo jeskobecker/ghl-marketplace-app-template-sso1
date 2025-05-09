@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import { GHL } from "./ghl";
 import * as CryptoJS from 'crypto-js'
 import { json } from "body-parser";
+import { AppUserType } from "./model";
 
 const path = __dirname + "/ui/dist/";
 
@@ -27,7 +28,29 @@ const port = process.env.PORT;
 app.get("/authorize-handler", async (req: Request, res: Response) => {
   const { code } = req.query;
   await ghl.authorizationHandler(code as string);
-  res.redirect("https://app.gohighlevel.com/");
+  
+  // After successful authorization, redirect to the app's location menu
+  res.redirect(`https://marketplace.gohighlevel.com/apps/${process.env.GHL_APP_CLIENT_ID}`);
+});
+
+// Endpoint to get app configuration for GHL
+app.get("/marketplace-app.json", (req: Request, res: Response) => {
+  res.json({
+    name: process.env.APP_NAME || "My Location App",
+    description: "Location management application",
+    distribution: AppUserType.Location,
+    menuV2: {
+      location: [
+        {
+          identifier: "location-dashboard",
+          type: "custom",
+          name: process.env.APP_LOCATION_MENU_TITLE || "Location Dashboard",
+          link: "/",
+          icon: "dashboard"
+        }
+      ]
+    }
+  });
 });
 
 /*`app.get("/example-api-call", async (req: Request, res: Response) => { ... })` shows you how you can use ghl object to make get requests
